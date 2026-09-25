@@ -67,7 +67,23 @@ Triage and the progress watchdog run as lifecycle hooks through `ralph-jev-hook 
 
 Everything sent to Jev (command output, events, commits, the objective) first goes through a redactor that masks common token formats, `Bearer` headers, credentials in URLs, private keys and `key=value` pairs whose name looks like a secret. The verification command runs in its own process group, which is killed on timeout and after it exits, and the judge itself runs in a process group that Ralph kills when it times out or finishes.
 
-Interactive diagrams: [architecture.html](docs/architecture/architecture.html), [completion-gate.html](docs/architecture/completion-gate.html).
+Interactive diagrams: [architecture](docs/architecture/architecture.html), [completion gate](docs/architecture/completion-gate.html), [loop lifecycle](docs/architecture/loop-lifecycle.html), [judge evidence](docs/architecture/judge-evidence.html).
+
+## Documentation
+
+The full documentation is in [`docs/`](docs/index.md) and builds with MkDocs (`mkdocs serve`):
+
+- [Getting started](docs/getting-started.md)
+- [Loop lifecycle](docs/concepts/loop-lifecycle.md)
+- [Completion gate](docs/concepts/completion-gate.md)
+- [Judge evidence](docs/concepts/judge-evidence.md)
+- [Jev hooks](docs/concepts/jev-hooks.md)
+- [Parallel loops](docs/concepts/parallel-loops.md)
+- [Configuration](docs/guide/configuration.md)
+- [Troubleshooting](docs/reference/troubleshooting.md)
+- [Architecture diagrams](docs/architecture/index.md)
+
+![Loop lifecycle](docs/architecture/loop-lifecycle.png)
 
 ## Install
 
@@ -79,7 +95,7 @@ cd ralph-jev
 jev/install.sh
 ```
 
-The installer builds the release binary and links `ralph-jev`, `ralph-jev-judge` and `ralph-jev-hook` into `~/.local/bin`. It also enables the judge and hooks in `~/.ralph/config.yml` when it can do so without conflicts; otherwise it tells you to merge `jev/ralph.jev.yml` by hand.
+The installer builds the release binary and links `ralph-jev`, `ralph-jev-judge` and `ralph-jev-hook` into `~/.local/bin`. It also enables the judge and hooks in `~/.ralph/config.yml` when it can do so without conflicts; otherwise it tells you to merge `jev/ralph.jev.yml` by hand. Set `RALPH_USER_CONFIG` to use another user config file; [ralph-jev-gauntlet](https://github.com/flaviomartil/ralph-jev-gauntlet) does this to run next to ralph-jev with its own judge.
 
 Jev credentials: set `TYPESAFE_API_KEY`, or keep it in `~/.config/jev-browser-use/.env`.
 
@@ -162,6 +178,7 @@ A non-zero exit code counts as a judge error.
 | `jev/ralph-jev-hook.mjs` | Jev triage and progress hooks |
 | `jev/lib/jev.mjs` | Shared Jev client: credentials, circuit breaker, evidence collection (no dependencies) |
 | `jev/install.sh` | Build and install |
+| `docs/` | MkDocs documentation |
 | `docs/architecture/` | Archify diagram specs and renders |
 
 ## Development

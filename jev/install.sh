@@ -7,7 +7,9 @@ USER_CFG="$HOME/.ralph/config.yml"
 
 cargo build --release -p ralph-cli --manifest-path "$ROOT/Cargo.toml"
 mkdir -p "$BIN_DIR"
-ln -sf "$ROOT/target/release/ralph" "$BIN_DIR/ralph-jev"
+RALPH_BIN="${CARGO_TARGET_DIR:-$ROOT/target}/release/ralph"
+case "$RALPH_BIN" in /*) ;; *) RALPH_BIN="$PWD/$RALPH_BIN" ;; esac
+ln -sf "$RALPH_BIN" "$BIN_DIR/ralph-jev"
 ln -sf "$ROOT/jev/ralph-jev-judge.mjs" "$BIN_DIR/ralph-jev-judge"
 ln -sf "$ROOT/jev/ralph-jev-hook.mjs" "$BIN_DIR/ralph-jev-hook"
 
