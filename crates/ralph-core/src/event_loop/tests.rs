@@ -5340,7 +5340,11 @@ fn test_text_fallback_completions_succeeds_when_all_checks_pass() {
 }
 
 #[cfg(unix)]
-fn judge_loop(temp_dir: &tempfile::TempDir, body: &str, max_rejections: u32) -> (EventLoop, std::path::PathBuf) {
+fn judge_loop(
+    temp_dir: &tempfile::TempDir,
+    body: &str,
+    max_rejections: u32,
+) -> (EventLoop, std::path::PathBuf) {
     use std::os::unix::fs::PermissionsExt;
 
     let script = temp_dir.path().join("judge.sh");
@@ -5389,8 +5393,11 @@ fn test_completion_judge_rejects_then_accepts() {
 #[test]
 fn test_completion_judge_budget_exhausted_accepts() {
     let temp_dir = tempfile::TempDir::new().unwrap();
-    let (mut event_loop, events_path) =
-        judge_loop(&temp_dir, "echo '{\"verdict\":\"fail\",\"reason\":\"no\"}'", 1);
+    let (mut event_loop, events_path) = judge_loop(
+        &temp_dir,
+        "echo '{\"verdict\":\"fail\",\"reason\":\"no\"}'",
+        1,
+    );
 
     write_event_to_jsonl(&events_path, "LOOP_COMPLETE", "Done");
     let _ = event_loop.process_events_from_jsonl();

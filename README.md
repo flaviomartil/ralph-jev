@@ -32,6 +32,37 @@ Safety bounds:
 - **Rejection budget**: after `max_rejections` rejections, the completion is accepted so the loop can't get stuck.
 - **Circuit breaker**: a 429 or 5xx from Jev pauses judge calls for `JEV_COOLDOWN_MS` (default 5 min), shared across processes through `~/.cache/ralph-jev/circuit.json`.
 
+## Jev decision points
+
+The completion gate is one of three places where Jev makes a typed decision about the loop:
+
+| Point | Lifecycle event | Jev questions | Effect |
+|---|---|---|---|
+| **Completion judge** | `LOOP_COMPLETE` | `objective_met` (noul), `verified` (noul), `gap` (choice) | Rejects the completion and tells the agent what to fix next |
+| **Triage** | `pre.loop.start` | `difficulty` (score, 4 levels), `ambiguous` (noul) | Warns when `max_iterations` is too low or the objective has no clear definition of done |
+| **Progress watchdog** | `pre.iteration.start` | `stalled` (noul) | Flags a loop that keeps repeating the same step or failure |
+
+The completion judge's `gap` choice picks one of `implementation_missing`, `tests_missing`, `checks_failing`, `off_objective` or `none`, and the rejection message turns it into a next step, for example:
+
+```
+Completion rejected by judge: Jev does not see the objective fully accomplished
+(objective_met=0.03 verified=0.05 gap=checks_failing); next: fix the failing checks and rerun them
+```
+
+Triage and the progress watchdog run as lifecycle hooks through `ralph-jev-hook <triage|progress>`. They write their scores to hook metadata (`metadata.accumulated.hook_metadata.<hook>`), print warnings on stderr and exit with a non-zero code when their threshold is crossed. `on_error` sets what happens next:
+
+- `warn` (default): log it and keep going.
+- `block`: stop the loop.
+- `suspend`: pause the loop until you resume it.
+
+| Env var | Default | Used by |
+|---|---|---|
+| `RALPH_JEV_AMBIGUOUS_THRESHOLD` | 0.7 | triage |
+| `RALPH_JEV_STALL_THRESHOLD` | 0.75 | progress |
+| `RALPH_JEV_PROGRESS_MIN_ITERATION` | 3 | progress |
+| `RALPH_JEV_TIMEOUT_MS` | 30000 | all |
+| `JEV_MODEL` | `jev-latest` | all |
+
 Interactive diagrams: [architecture.html](docs/architecture/architecture.html), [completion-gate.html](docs/architecture/completion-gate.html).
 
 ## Install
@@ -44,7 +75,7 @@ cd ralph-jev
 jev/install.sh
 ```
 
-The installer builds the release binary and links `ralph-jev` and `ralph-jev-judge` into `~/.local/bin`. It also enables the judge in `~/.ralph/config.yml` when it can do so without conflicts; otherwise it tells you to merge `jev/ralph.jev.yml` by hand.
+The installer builds the release binary and links `ralph-jev`, `ralph-jev-judge` and `ralph-jev-hook` into `~/.local/bin`. It also enables the judge and hooks in `~/.ralph/config.yml` when it can do so without conflicts; otherwise it tells you to merge `jev/ralph.jev.yml` by hand.
 
 Jev credentials: set `TYPESAFE_API_KEY`, or keep it in `~/.config/jev-browser-use/.env`.
 
@@ -56,7 +87,7 @@ ralph-jev run -p "Add a header before the <p> tag and cover it with a test" --ma
 ralph-jev loops
 ```
 
-Per-project configuration in `ralph.yml`:
+Per-project configuration in `ralph.yml` (the same block as `jev/ralph.jev.yml`):
 
 ```yaml
 event_loop:
@@ -65,7 +96,25 @@ event_loop:
     timeout_seconds: 60
     max_rejections: 3
     fail_closed: false
+
+hooks:
+  enabled: true
+  events:
+    pre.loop.start:
+      - name: jev-triage
+        command: ["ralph-jev-hook", "triage"]
+        on_error: warn
+        mutate:
+          enabled: true
+    pre.iteration.start:
+      - name: jev-progress
+        command: ["ralph-jev-hook", "progress"]
+        on_error: suspend
+        mutate:
+          enabled: true
 ```
+
+Check it with `ralph-jev hooks validate -c ralph.yml`.
 
 Any executable that follows the stdin/stdout contract can be a judge, so you can swap Jev for a test runner, a linter or another model.
 
@@ -105,7 +154,9 @@ A non-zero exit code counts as a judge error.
 | `crates/ralph-tui` | Terminal UI |
 | `crates/ralph-telegram` | Human-in-the-loop over Telegram |
 | `backend/`, `frontend/` | Web dashboard |
-| `jev/ralph-jev-judge.mjs` | Default Jev judge, no dependencies |
+| `jev/ralph-jev-judge.mjs` | Default Jev completion judge |
+| `jev/ralph-jev-hook.mjs` | Jev triage and progress hooks |
+| `jev/lib/jev.mjs` | Shared Jev client: credentials, circuit breaker, evidence collection (no dependencies) |
 | `jev/install.sh` | Build and install |
 | `docs/architecture/` | Archify diagram specs and renders |
 

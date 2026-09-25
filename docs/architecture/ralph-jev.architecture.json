@@ -21,15 +21,16 @@
       },
       {
         "id": "gate",
-        "label": "Completion gate",
+        "label": "Jev decisions",
         "focus": [
           "core",
           "gate",
           "judge",
+          "hook",
           "jev",
           "workspace"
         ],
-        "note": "LOOP_COMPLETE only ends the loop after the Jev judge sees the objective met and verified."
+        "note": "Jev judges completion claims, triages the objective at start and watches each iteration for stalls."
       },
       {
         "id": "surfaces",
@@ -229,6 +230,21 @@
         160,
         60
       ]
+    },
+    {
+      "id": "hook",
+      "type": "security",
+      "label": "ralph-jev-hook",
+      "sublabel": "triage / progress",
+      "pos": [
+        700,
+        620
+      ],
+      "size": [
+        140,
+        60
+      ],
+      "tag": "lifecycle hooks"
     }
   ],
   "boundaries": [
@@ -244,7 +260,8 @@
         "state",
         "gate",
         "judge",
-        "workspace"
+        "workspace",
+        "hook"
       ]
     }
   ],
@@ -340,6 +357,32 @@
       "to": "state",
       "label": "read",
       "variant": "dashed"
+    },
+    {
+      "id": "core-hook",
+      "from": "core",
+      "to": "hook",
+      "label": "hooks",
+      "variant": "security"
+    },
+    {
+      "id": "hook-jev",
+      "from": "hook",
+      "to": "jev",
+      "label": "HTTPS",
+      "variant": "security",
+      "fromSide": "right",
+      "toSide": "right",
+      "via": [
+        [
+          1120,
+          650
+        ],
+        [
+          1120,
+          140
+        ]
+      ]
     }
   ],
   "cards": [
@@ -354,11 +397,11 @@
     },
     {
       "dot": "rose",
-      "title": "Completion Gate",
+      "title": "Jev Decisions",
       "items": [
-        "Runs after required events and open tasks checks",
-        "Jev must see objective_met and verified",
-        "Fail sends task.resume with the reason"
+        "Completion judge: objective_met, verified, gap",
+        "Triage at loop start: difficulty, ambiguity",
+        "Progress watchdog each iteration: stalled"
       ]
     },
     {

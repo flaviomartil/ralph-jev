@@ -73,10 +73,7 @@ pub fn run_judge(
             Ok(None) if Instant::now() >= deadline => {
                 let _ = child.kill();
                 let _ = child.wait();
-                return Err(format!(
-                    "judge timed out after {}s",
-                    config.timeout_seconds
-                ));
+                return Err(format!("judge timed out after {}s", config.timeout_seconds));
             }
             Ok(None) => std::thread::sleep(Duration::from_millis(50)),
             Err(e) => return Err(format!("failed to wait for judge: {e}")),
