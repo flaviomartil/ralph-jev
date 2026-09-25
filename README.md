@@ -62,6 +62,10 @@ Triage and the progress watchdog run as lifecycle hooks through `ralph-jev-hook 
 | `RALPH_JEV_PROGRESS_MIN_ITERATION` | 3 | progress |
 | `RALPH_JEV_TIMEOUT_MS` | 30000 | all |
 | `JEV_MODEL` | `jev-latest` | all |
+| `RALPH_JEV_VERIFY_CMD` | unset | completion judge: shell command run in the workspace first; a failure rejects immediately and a pass is shown to Jev |
+| `RALPH_JEV_VERIFY_TIMEOUT_MS` | 300000 | completion judge |
+
+Everything sent to Jev (command output, events, commits, the objective) first goes through a redactor that masks common token formats, `Bearer` headers, credentials in URLs, private keys and `key=value` pairs whose name looks like a secret. The verification command runs in its own process group, which is killed on timeout and after it exits, and the judge itself runs in a process group that Ralph kills when it times out or finishes.
 
 Interactive diagrams: [architecture.html](docs/architecture/architecture.html), [completion-gate.html](docs/architecture/completion-gate.html).
 
