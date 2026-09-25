@@ -49,7 +49,7 @@ Completion rejected by judge: Jev does not see the objective fully accomplished
 (objective_met=0.03 verified=0.05 gap=checks_failing); next: fix the failing checks and rerun them
 ```
 
-Triage and the progress watchdog run as lifecycle hooks through `ralph-jev-hook <triage|progress>`. They write their scores to hook metadata (`metadata.accumulated.hook_metadata.<hook>`), print warnings on stderr and exit with a non-zero code when their threshold is crossed. `on_error` sets what happens next:
+Triage and the progress watchdog run as lifecycle hooks through `ralph-jev-hook <triage|progress>`. They write their scores to hook metadata (`metadata.accumulated.hook_metadata.<hook>`), print warnings on stderr and exit with a non-zero code when their threshold is crossed. If Jev is unavailable or returns an incomplete answer, they skip with exit 0 so an outage never blocks the loop. `on_error` sets what happens next:
 
 - `warn` (default): log it and keep going.
 - `block`: stop the loop.
