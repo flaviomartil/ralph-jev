@@ -166,6 +166,7 @@ A non-zero exit code counts as a judge error.
 cargo build
 cargo test -p ralph-core
 cargo test -p ralph-core completion_judge
+node --test jev/test/*.test.mjs
 ```
 
 ## License
