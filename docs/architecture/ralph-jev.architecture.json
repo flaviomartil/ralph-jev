@@ -1,0 +1,374 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "ralph-jev Architecture",
+    "output": "architecture.html",
+    "quality_profile": "showcase",
+    "views": [
+      {
+        "id": "loop",
+        "label": "Agent loop",
+        "focus": [
+          "operator",
+          "cli",
+          "core",
+          "adapters",
+          "agents",
+          "state"
+        ],
+        "note": "Each iteration builds a fresh prompt, runs an agent CLI and reads the events it emits."
+      },
+      {
+        "id": "gate",
+        "label": "Completion gate",
+        "focus": [
+          "core",
+          "gate",
+          "judge",
+          "jev",
+          "workspace"
+        ],
+        "note": "LOOP_COMPLETE only ends the loop after the Jev judge sees the objective met and verified."
+      },
+      {
+        "id": "surfaces",
+        "label": "Operator surfaces",
+        "focus": [
+          "operator",
+          "tui",
+          "web",
+          "telegram",
+          "core"
+        ],
+        "note": "Watch and steer the loop from the terminal, the dashboard or Telegram."
+      }
+    ]
+  },
+  "components": [
+    {
+      "id": "operator",
+      "type": "external",
+      "label": "Operator",
+      "sublabel": "prompt / spec",
+      "pos": [
+        40,
+        300
+      ],
+      "size": [
+        130,
+        60
+      ]
+    },
+    {
+      "id": "cli",
+      "type": "frontend",
+      "label": "ralph-jev CLI",
+      "sublabel": "run / plan / loops",
+      "pos": [
+        240,
+        300
+      ],
+      "size": [
+        140,
+        60
+      ]
+    },
+    {
+      "id": "tui",
+      "type": "frontend",
+      "label": "TUI",
+      "sublabel": "ratatui",
+      "pos": [
+        240,
+        110
+      ],
+      "size": [
+        140,
+        60
+      ]
+    },
+    {
+      "id": "telegram",
+      "type": "external",
+      "label": "Telegram",
+      "sublabel": "human-in-the-loop",
+      "pos": [
+        40,
+        110
+      ],
+      "size": [
+        130,
+        60
+      ]
+    },
+    {
+      "id": "web",
+      "type": "frontend",
+      "label": "Web Dashboard",
+      "sublabel": "React + Fastify",
+      "pos": [
+        240,
+        470
+      ],
+      "size": [
+        140,
+        60
+      ]
+    },
+    {
+      "id": "core",
+      "type": "backend",
+      "label": "Event Loop",
+      "sublabel": "hats / tasks / memories",
+      "pos": [
+        460,
+        300
+      ],
+      "size": [
+        160,
+        64
+      ],
+      "tag": "ralph-core"
+    },
+    {
+      "id": "adapters",
+      "type": "backend",
+      "label": "Adapters",
+      "sublabel": "backend PTY",
+      "pos": [
+        700,
+        300
+      ],
+      "size": [
+        140,
+        60
+      ]
+    },
+    {
+      "id": "agents",
+      "type": "external",
+      "label": "Agent CLIs",
+      "sublabel": "Claude / Codex / Gemini",
+      "pos": [
+        920,
+        300
+      ],
+      "size": [
+        160,
+        60
+      ]
+    },
+    {
+      "id": "state",
+      "type": "database",
+      "label": ".ralph/",
+      "sublabel": "events / tasks / memory",
+      "pos": [
+        460,
+        470
+      ],
+      "size": [
+        160,
+        60
+      ]
+    },
+    {
+      "id": "workspace",
+      "type": "database",
+      "label": "Git Workspace",
+      "sublabel": "code + commits",
+      "pos": [
+        920,
+        470
+      ],
+      "size": [
+        160,
+        60
+      ]
+    },
+    {
+      "id": "gate",
+      "type": "security",
+      "label": "Completion Gate",
+      "sublabel": "completion_judge",
+      "pos": [
+        460,
+        110
+      ],
+      "size": [
+        160,
+        60
+      ],
+      "tag": "fail-open"
+    },
+    {
+      "id": "judge",
+      "type": "backend",
+      "label": "ralph-jev-judge",
+      "sublabel": "Node, zero deps",
+      "pos": [
+        700,
+        110
+      ],
+      "size": [
+        140,
+        60
+      ]
+    },
+    {
+      "id": "jev",
+      "type": "cloud",
+      "label": "TypeSafe Jev",
+      "sublabel": "noul judgments",
+      "pos": [
+        920,
+        110
+      ],
+      "size": [
+        160,
+        60
+      ]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "Local machine",
+      "wraps": [
+        "cli",
+        "tui",
+        "web",
+        "core",
+        "adapters",
+        "state",
+        "gate",
+        "judge",
+        "workspace"
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "op-cli",
+      "from": "operator",
+      "to": "cli",
+      "label": "prompt",
+      "variant": "emphasis"
+    },
+    {
+      "id": "cli-core",
+      "from": "cli",
+      "to": "core",
+      "variant": "emphasis"
+    },
+    {
+      "id": "core-adapters",
+      "from": "core",
+      "to": "adapters",
+      "label": "prompt",
+      "variant": "emphasis"
+    },
+    {
+      "id": "adapters-agents",
+      "from": "adapters",
+      "to": "agents",
+      "label": "spawn"
+    },
+    {
+      "id": "agents-workspace",
+      "from": "agents",
+      "to": "workspace",
+      "label": "edit + commit",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "labelAt": [
+        1000,
+        415
+      ]
+    },
+    {
+      "id": "core-state",
+      "from": "core",
+      "to": "state",
+      "label": "events",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "labelAt": [
+        540,
+        415
+      ]
+    },
+    {
+      "id": "core-gate",
+      "from": "core",
+      "to": "gate",
+      "label": "LOOP_COMPLETE",
+      "variant": "security",
+      "fromSide": "top",
+      "toSide": "bottom"
+    },
+    {
+      "id": "gate-judge",
+      "from": "gate",
+      "to": "judge",
+      "label": "JSON stdin"
+    },
+    {
+      "id": "judge-jev",
+      "from": "judge",
+      "to": "jev",
+      "label": "HTTPS",
+      "variant": "security"
+    },
+    {
+      "id": "tui-core",
+      "from": "tui",
+      "to": "core",
+      "variant": "dashed"
+    },
+    {
+      "id": "tg-tui",
+      "from": "telegram",
+      "to": "tui",
+      "label": "guidance",
+      "variant": "dashed"
+    },
+    {
+      "id": "web-state",
+      "from": "web",
+      "to": "state",
+      "label": "read",
+      "variant": "dashed"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "Loop",
+      "items": [
+        "Fresh context every iteration",
+        "Agents emit events, hats route them",
+        "Tasks and memories persist on disk"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Completion Gate",
+      "items": [
+        "Runs after required events and open tasks checks",
+        "Jev must see objective_met and verified",
+        "Fail sends task.resume with the reason"
+      ]
+    },
+    {
+      "dot": "orange",
+      "title": "Safety",
+      "items": [
+        "Fail-open on Jev errors unless fail_closed",
+        "max_rejections bounds rejections",
+        "Circuit breaker on 429 and 5xx"
+      ]
+    }
+  ]
+}

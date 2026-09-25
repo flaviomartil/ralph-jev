@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# Pre-commit hook: run the fast subset of the shared Rust CI parity gate.
+# This keeps commit-time checks aligned with CI without running the slower
+# hooks BDD and mock E2E steps on every commit.
+
+set -euo pipefail
+
+REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+cd "$REPO_ROOT"
+
+# Hooks inherit Git env vars (GIT_DIR/GIT_INDEX_FILE/etc.).
+# Unset them so nested `git` calls in tests run against their own repos.
+while IFS= read -r git_env_var; do
+  unset "$git_env_var"
+done < <(git rev-parse --local-env-vars)
+
+./scripts/ci-rust-gate.sh --skip-hooks-bdd --skip-mock-e2e

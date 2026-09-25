@@ -1,0 +1,6 @@
+event_loop:
+  completion_judge:
+    command: ["ralph-jev-judge"]
+    timeout_seconds: 60
+    max_rejections: 3
+    fail_closed: false

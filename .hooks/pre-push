@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+# Pre-push hook: run the shared Rust CI parity gate before pushing.
+# This catches the Rust-side CI failures locally, including the checks that
+# previously drifted from GitHub Actions.
+#
+# Skip with: git push --no-verify
+
+set -euo pipefail
+
+REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+cd "$REPO_ROOT"
+
+# Hooks inherit Git env vars (GIT_DIR/GIT_INDEX_FILE/etc.).
+# Unset them so nested `git` calls in tests run against their own repos.
+while IFS= read -r git_env_var; do
+  unset "$git_env_var"
+done < <(git rev-parse --local-env-vars)
+
+./scripts/ci-rust-gate.sh

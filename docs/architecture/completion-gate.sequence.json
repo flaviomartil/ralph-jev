@@ -1,0 +1,214 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "ralph-jev Completion Gate",
+    "output": "completion-gate.html",
+    "viewBox": [
+      820,
+      760
+    ],
+    "animation": "trace",
+    "quality_profile": "showcase",
+    "views": [
+      {
+        "id": "claim",
+        "label": "Completion claim",
+        "focus": [
+          "agent",
+          "loop"
+        ],
+        "note": "The agent emits LOOP_COMPLETE and the loop runs its built-in checks."
+      },
+      {
+        "id": "judge",
+        "label": "Jev judgment",
+        "focus": [
+          "loop",
+          "judge",
+          "git",
+          "jev"
+        ],
+        "note": "The judge gathers evidence from git and asks Jev two yes/no questions."
+      },
+      {
+        "id": "outcome",
+        "label": "Outcome",
+        "focus": [
+          "judge",
+          "loop",
+          "agent"
+        ],
+        "note": "Fail resumes the loop with the reason; pass terminates it."
+      }
+    ]
+  },
+  "participants": [
+    {
+      "id": "agent",
+      "type": "external",
+      "label": "Agent CLI",
+      "sublabel": "current hat"
+    },
+    {
+      "id": "loop",
+      "type": "backend",
+      "label": "Event Loop",
+      "sublabel": "ralph-core"
+    },
+    {
+      "id": "judge",
+      "type": "security",
+      "label": "Judge",
+      "sublabel": "ralph-jev-judge"
+    },
+    {
+      "id": "git",
+      "type": "database",
+      "label": "Workspace",
+      "sublabel": "git + .ralph"
+    },
+    {
+      "id": "jev",
+      "type": "cloud",
+      "label": "Jev",
+      "sublabel": "TypeSafe"
+    }
+  ],
+  "segments": [
+    {
+      "from": 150,
+      "to": 290,
+      "label": "Claim"
+    },
+    {
+      "from": 310,
+      "to": 520,
+      "label": "Judge"
+    },
+    {
+      "from": 540,
+      "to": 665,
+      "label": "Outcome"
+    }
+  ],
+  "messages": [
+    {
+      "id": "emit",
+      "from": "agent",
+      "to": "loop",
+      "y": 190,
+      "label": "emit LOOP_COMPLETE",
+      "variant": "emphasis"
+    },
+    {
+      "id": "invoke",
+      "from": "loop",
+      "to": "judge",
+      "y": 330,
+      "label": "objective + closed tasks (stdin)",
+      "variant": "security"
+    },
+    {
+      "id": "evidence",
+      "from": "judge",
+      "to": "git",
+      "y": 375,
+      "label": "log / status / diff / events",
+      "variant": "default"
+    },
+    {
+      "id": "evidence-back",
+      "from": "git",
+      "to": "judge",
+      "y": 410,
+      "label": "evidence",
+      "variant": "return"
+    },
+    {
+      "id": "ask",
+      "from": "judge",
+      "to": "jev",
+      "y": 455,
+      "label": "objective_met? verified?",
+      "variant": "emphasis"
+    },
+    {
+      "id": "probs",
+      "from": "jev",
+      "to": "judge",
+      "y": 495,
+      "label": "probabilities",
+      "variant": "return"
+    },
+    {
+      "id": "verdict",
+      "from": "judge",
+      "to": "loop",
+      "y": 570,
+      "label": "{verdict, reason}",
+      "variant": "return"
+    },
+    {
+      "id": "resume",
+      "from": "loop",
+      "to": "agent",
+      "y": 630,
+      "label": "fail: task.resume + reason",
+      "variant": "dashed"
+    }
+  ],
+  "activations": [
+    {
+      "participant": "loop",
+      "from": 185,
+      "to": 640,
+      "type": "backend"
+    },
+    {
+      "participant": "judge",
+      "from": 325,
+      "to": 575,
+      "type": "security"
+    },
+    {
+      "participant": "git",
+      "from": 370,
+      "to": 415,
+      "type": "database"
+    },
+    {
+      "participant": "jev",
+      "from": 450,
+      "to": 500,
+      "type": "cloud"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "Pass",
+      "items": [
+        "objective_met >= 0.6 and verified >= 0.5",
+        "Loop terminates with CompletionPromise"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Fail",
+      "items": [
+        "Reason injected as task.resume",
+        "Agent keeps working with fresh context"
+      ]
+    },
+    {
+      "dot": "orange",
+      "title": "Bounds",
+      "items": [
+        "Runs after required events and open tasks checks",
+        "Timeout or error: fail-open",
+        "After max_rejections the claim is accepted"
+      ]
+    }
+  ]
+}
